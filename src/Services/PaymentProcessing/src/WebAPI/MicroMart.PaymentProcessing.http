@@ -1,0 +1,6 @@
+@MicroMart.PaymentProcessing_HostAddress = http://localhost:5044
+
+GET {{MicroMart.PaymentProcessing_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

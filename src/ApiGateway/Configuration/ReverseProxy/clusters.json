@@ -1,0 +1,95 @@
+{
+  "Clusters": {
+    // 🔧 Local cluster for handling requests internally
+    "self": {
+      "Destinations": {
+        "self": {
+          "Address": "http://localhost:8000/" // Points to itself
+        }
+      }
+    },
+
+    // 🔄 Your existing service clusters
+    "product-cluster": {
+      "LoadBalancingPolicy": "RoundRobin",
+      "Destinations": {
+        "product-1": {
+          "Address": "http://localhost:5001/",
+          "Health": "http://localhost:5001/health"
+        },
+        "product-2": {
+          "Address": "http://localhost:5006/"
+        }
+      },
+      "HealthCheck": {
+        "Active": {
+          "Enabled": true,
+          "Interval": "00:00:10",
+          "Timeout": "00:00:05",
+          "Path": "/health"
+        }
+      }
+    },
+
+    "order-cluster": {
+      "LoadBalancingPolicy": "LeastRequests",
+      "Destinations": {
+        "order-1": {
+          "Address": "http://localhost:5002/",
+          "Health": "http://localhost:5002/health"
+        }
+      }
+    },
+
+    "payment-cluster": {
+      "LoadBalancingPolicy": "RoundRobin",
+      "Destinations": {
+        "payment-1": {
+          "Address": "http://localhost:5003/",
+          "Health": "http://localhost:5003/health"
+        }
+      }
+    },
+
+    "auth-cluster": {
+      "LoadBalancingPolicy": "RoundRobin",
+      "Destinations": {
+        "auth-1": {
+          "Address": "http://localhost:5004/",
+          "Health": "http://localhost:5004/health"
+        }
+      }
+    },
+
+    "review-cluster": {
+      "LoadBalancingPolicy": "RoundRobin",
+      "Destinations": {
+        "review-1": {
+          "Address": "http://localhost:5005/",
+          "Health": "http://localhost:5005/health"
+        }
+      }
+    },
+
+    "notification-cluster": {
+      "LoadBalancingPolicy": "RoundRobin",
+      "Destinations": {
+        "notification-1": {
+          "Address": "http://localhost:5006/",
+          "Health": "http://localhost:5006/health"
+        }
+      }
+    },
+
+    // 🎯 Default cluster for unmatched API routes
+    "default-cluster": {
+      "LoadBalancingPolicy": "RoundRobin",
+      "Destinations": {
+        "fallback": {
+          "Address": "http://localhost:5001/",
+          "Health": "http://localhost:5001/health"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# Rider / JetBrains
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Others
+*.db
+*.sqlite
+*.env

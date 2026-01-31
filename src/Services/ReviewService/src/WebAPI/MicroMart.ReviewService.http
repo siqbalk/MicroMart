@@ -1,0 +1,6 @@
+@MicroMart.ReviewService_HostAddress = http://localhost:5229
+
+GET {{MicroMart.ReviewService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,47 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/ApiGateway/">
+    <Project Path="src/ApiGateway/MicroMart.ApiGateway.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/NotificationService/" />
+  <Folder Name="/src/Services/NotificationService/src/" />
+  <Folder Name="/src/Services/NotificationService/src/Worker/">
+    <Project Path="src/Services/NotificationService/src/Worker/MicroMart.NotificationService.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/OrderManagement/" />
+  <Folder Name="/src/Services/OrderManagement/src/" />
+  <Folder Name="/src/Services/OrderManagement/src/WebAPI/">
+    <Project Path="src/Services/OrderManagement/src/WebAPI/MicroMart.OrderManagement.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/PaymentProcessing/" />
+  <Folder Name="/src/Services/PaymentProcessing/src/" />
+  <Folder Name="/src/Services/PaymentProcessing/src/WebAPI/">
+    <Project Path="src/Services/PaymentProcessing/src/WebAPI/MicroMart.PaymentProcessing.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/ProductCatalog/" />
+  <Folder Name="/src/Services/ProductCatalog/src/" />
+  <Folder Name="/src/Services/ProductCatalog/src/WebAPI/">
+    <Project Path="src/Services/ProductCatalog/src/WebAPI/MicroMart.ProductCatalog.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/ReviewService/" />
+  <Folder Name="/src/Services/ReviewService/src/" />
+  <Folder Name="/src/Services/ReviewService/src/WebAPI/">
+    <Project Path="src/Services/ReviewService/src/WebAPI/MicroMart.ReviewService.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/UserIdentity/" />
+  <Folder Name="/src/Services/UserIdentity/src/" />
+  <Folder Name="/src/Services/UserIdentity/src/WebAPI/">
+    <Project Path="src/Services/UserIdentity/src/WebAPI/MicroMart.UserIdentity.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/" />
+  <Folder Name="/src/Shared/src/">
+    <Project Path="src/Shared/MicroMart.Shared.Caching/MicroMart.Shared.Caching.csproj" />
+    <Project Path="src/Shared/MicroMart.Shared.Core/MicroMart.Shared.Core.csproj" />
+    <Project Path="src/Shared/MicroMart.Shared.Logging/MicroMart.Shared.Logging.csproj" />
+    <Project Path="src/Shared/MicroMart.Shared.MessageBus/MicroMart.Shared.MessageBus.csproj" />
+  </Folder>
+</Solution>

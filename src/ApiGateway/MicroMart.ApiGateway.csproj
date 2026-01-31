@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AssemblyName>MicroMart.ApiGateway</AssemblyName>
+		<RootNamespace>MicroMart.ApiGateway</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- YARP Core -->
+		<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.2.0" />
+		<PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.15.0" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
+		<PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+
+		<!-- Security -->
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
+		<PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
+
+		<!-- Observability -->
+		<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0" />
+
+		<!-- Resilience -->
+		<PackageReference Include="Polly" Version="8.6.5" />
+		<PackageReference Include="Polly.Extensions" Version="8.6.5" />
+
+		<!-- Health Checks -->
+		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+
+		<!-- Caching -->
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.2" />
+
+		<!-- Service Discovery -->
+		<PackageReference Include="Consul" Version="1.7.14.10" />
+
+		<!-- Utilities -->
+
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Configuration\HealthCheck\" />
+	</ItemGroup>
+
+</Project>

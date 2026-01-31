@@ -1,0 +1,96 @@
+{
+  "Routes": [
+    {
+      "RouteId": "api-products",
+      "ClusterId": "product-cluster",
+      "Match": {
+        "Path": "/api/products/{**remainder}"
+      }
+    },
+    {
+      "RouteId": "api-orders",
+      "ClusterId": "order-cluster",
+      "Match": {
+        "Path": "/api/orders/{**remainder}"
+      }
+    },
+    {
+      "RouteId": "api-payments",
+      "ClusterId": "payment-cluster",
+      "Match": {
+        "Path": "/api/payments/{**remainder}"
+      }
+    },
+    {
+      "RouteId": "api-auth",
+      "ClusterId": "auth-cluster",
+      "Match": {
+        "Path": "/api/auth/{**remainder}"
+      }
+    },
+    {
+      "RouteId": "api-reviews",
+      "ClusterId": "review-cluster",
+      "Match": {
+        "Path": "/api/reviews/{**remainder}"
+      }
+    },
+    {
+      "RouteId": "api-notifications",
+      "ClusterId": "notification-cluster",
+      "Match": {
+        "Path": "/api/notifications/{**remainder}"
+      }
+    }
+  ],
+  "Clusters": [
+    {
+      "ClusterId": "product-cluster",
+      "Destinations": {
+        "destination1": {
+          "Address": "https://localhost:5001/"
+        }
+      }
+    },
+    {
+      "ClusterId": "order-cluster",
+      "Destinations": {
+        "destination1": {
+          "Address": "https://localhost:5002/"
+        }
+      }
+    },
+    {
+      "ClusterId": "payment-cluster",
+      "Destinations": {
+        "destination1": {
+          "Address": "https://localhost:5003/"
+        }
+      }
+    },
+    {
+      "ClusterId": "auth-cluster",
+      "Destinations": {
+        "destination1": {
+          "Address": "https://localhost:5004/"
+        }
+      }
+    },
+    {
+      "ClusterId": "review-cluster",
+      "Destinations": {
+        "destination1": {
+          "Address": "https://localhost:5005/"
+        }
+      }
+    },
+    {
+      "ClusterId": "notification-cluster",
+      "Destinations": {
+        "destination1": {
+          "Address": "https://localhost:5006/"
+        }
+      }
+    }
+  ]
+}
