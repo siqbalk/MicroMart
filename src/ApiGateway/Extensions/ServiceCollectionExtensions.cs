@@ -8,12 +8,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Polly;
 using System.Text;
-using Microsoft.OpenApi;
+using Yarp.ReverseProxy.Transforms;
 
 namespace MicroMart.ApiGateway.Extensions;
 
@@ -38,11 +39,22 @@ public static class ServiceCollectionExtensions
      this IServiceCollection services,
      IConfiguration configuration)
     {
-        services
-            .AddReverseProxy()
-            .LoadFromConfig(configuration.GetSection("ReverseProxy"))
-            .AddConfigFilter<YarpRouteFilter>()
-            .AddTransforms<GatewayTransformProvider>();
+
+        services.AddReverseProxy()
+     .LoadFromConfig(configuration.GetSection("ReverseProxy"))
+     .AddTransforms(transforms =>
+     {
+         transforms.AddRequestTransform(context =>
+         {
+             var token = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+             if (!string.IsNullOrEmpty(token))
+             {
+                 context.ProxyRequest.Headers.Remove("Authorization");
+                 context.ProxyRequest.Headers.Add("Authorization", token);
+             }
+             return ValueTask.CompletedTask;
+         });
+     });
 
         // Configure resilience for outgoing proxy calls
         services.AddHttpClient("proxy")
@@ -72,55 +84,95 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-
     public static IServiceCollection AddSecurityServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // CORS
+        // -------------------
+        // 1️⃣ CORS
+        // -------------------
         services.AddCors(options =>
         {
             options.AddPolicy("GatewayCorsPolicy",
                 builder => builder
-                    .WithOrigins("http://localhost:3000", "http://localhost:8080")
+                    .WithOrigins("http://localhost:4200", "http://localhost:8080")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials());
         });
 
-        // JWT Authentication
-        var jwtConfig = configuration.GetSection("Security:Jwt");
-        if (jwtConfig.Exists())
+        // -------------------
+        // 2️⃣ JWT Authentication (Entra ID / Azure AD)
+        // -------------------
+        var azureAdConfig = configuration.GetSection("Security:AzureAd");
+        if (azureAdConfig.Exists())
         {
+            var tenantId = azureAdConfig["TenantId"];
+            var clientId = azureAdConfig["ClientId"]; // This should be the API Client ID (a2bca0f8...)
+            var instance = azureAdConfig["Instance"] ?? "https://login.microsoftonline.com";
+            var authority = $"{instance}/{tenantId}";
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    options.Authority = authority;
+                    options.Audience = clientId; // This must match the API's Application ID URI
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtConfig["Issuer"],
-                        ValidAudience = jwtConfig["Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(jwtConfig["Secret"] ?? throw new ArgumentNullException()))
+                        ValidAudience = clientId, // Explicitly set
+                        ValidAudiences = new[] { clientId, $"api://{clientId}" } // Accept both formats
+                    };
+
+                    // Add event for debugging
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnAuthenticationFailed = context =>
+                        {
+                            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                            return Task.CompletedTask;
+                        },
+                        OnTokenValidated = context =>
+                        {
+                            Console.WriteLine("Token successfully validated");
+                            return Task.CompletedTask;
+                        },
+                        OnChallenge = context =>
+                        {
+                            Console.WriteLine($"Challenge: {context.Error}, {context.ErrorDescription}");
+                            return Task.CompletedTask;
+                        }
                     };
                 });
 
-            services.AddAuthorization();
+            services.AddAuthorization(options =>
+            {
+                // Default policy requires authentication
+                options.FallbackPolicy = options.DefaultPolicy;
+
+                // Example policies
+                options.AddPolicy("AdminOnly", policy =>
+                    policy.RequireClaim("roles", "Admin"));
+
+                options.AddPolicy("UserOrAdmin", policy =>
+                    policy.RequireClaim("roles", new[] { "User", "Admin" }));
+            });
         }
 
-        // API Key Authentication Service
+        // -------------------
+        // 3️⃣ API Key Authentication Service
+        // -------------------
         services.AddSingleton<IApiKeyValidationService, ApiKeyValidationService>();
 
-        // Rate Limiting
-
-       
+        // -------------------
+        // 4️⃣ Rate Limiting
+        // -------------------
         services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
         services.AddInMemoryRateLimiting();
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
         services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
-        services.AddInMemoryRateLimiting();
 
         return services;
     }

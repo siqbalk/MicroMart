@@ -14,11 +14,11 @@
       "LoadBalancingPolicy": "RoundRobin",
       "Destinations": {
         "product-1": {
-          "Address": "http://localhost:5001/",
-          "Health": "http://localhost:5001/health"
+          "Address": "http://localhost:5296/",
+          "Health": "http://localhost:5296/health"
         },
         "product-2": {
-          "Address": "http://localhost:5006/"
+          "Address": "http://localhost:5296/"
         }
       },
       "HealthCheck": {

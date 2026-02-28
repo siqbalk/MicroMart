@@ -18,18 +18,6 @@ public static class LoggingExtensions
             builder.AddConfiguration(configuration.GetSection("Logging"));
             builder.AddConsole();
             builder.AddDebug();
-
-            // Remove AddFile as it is not a built-in provider.
-            // If you want file logging, consider using Serilog or another logging provider.
-            // Example (if using Serilog):
-            // Log.Logger = new LoggerConfiguration()
-            //     .ReadFrom.Configuration(configuration)
-            //     .WriteTo.File("logs/micromart-gateway-.txt", rollingInterval: RollingInterval.Day)
-            //     .CreateLogger();
-            // builder.AddSerilog();
-
-            // If you want to keep file logging, you need to install a compatible provider
-            // such as Serilog.Extensions.Logging.File or similar.
         });
 
         return services;

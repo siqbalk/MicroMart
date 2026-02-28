@@ -17,6 +17,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/gateway-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
+
 builder.Host.UseSerilog();
 
 try
@@ -78,6 +79,7 @@ try
     app.UseIpRateLimiting();
 
     app.UseHttpsRedirection();
+    app.UseRouting();
     app.UseCors("GatewayCorsPolicy");
     app.UseAuthentication();
     app.UseAuthorization();
@@ -96,7 +98,8 @@ try
     app.MapControllers();
 
     // 🔥 Reverse proxy (ONLY ONCE and LAST)
-    app.MapReverseProxy();
+    app.MapReverseProxy()
+    .RequireAuthorization();
 
     await app.RunAsync();
 }
