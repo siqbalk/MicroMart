@@ -40,9 +40,9 @@ jobs:
     - name: Azure Login
       uses: azure/login@v2
       with:
-        client-id: ${{ vars.micromartapigateway_CLIENT_ID_71BF }}
-        tenant-id: ${{ vars.micromartapigateway_TENANT_ID_8D63 }}
-        subscription-id: ${{ vars.micromartapigateway_SUBSCRIPTION_ID_8D63 }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     - name: Deploy to containerapp
       uses: azure/CLI@v2
       with:
