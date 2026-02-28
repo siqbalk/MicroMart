@@ -3,9 +3,6 @@ on:
   push:
     branches:
     - dev
-permissions:
-  id-token: write
-  contents: read
 env:
   CONTAINER_APP_CONTAINER_NAME: micromartapigateway
   CONTAINER_APP_NAME: micromartapigateway
