@@ -78,7 +78,7 @@ try
 
     app.UseIpRateLimiting();
 
-    app.UseHttpsRedirection();
+    //app.UseHttpsRedirection();
     app.UseRouting();
     app.UseCors("GatewayCorsPolicy");
     app.UseAuthentication();
