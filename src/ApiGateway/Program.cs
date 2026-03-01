@@ -7,6 +7,11 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
+
 builder.AddConfigurationFiles();
 
 // Configure Serilog
@@ -49,10 +54,19 @@ try
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
 
-    builder.WebHost.ConfigureKestrel(options =>
+    if (builder.Environment.IsProduction())
     {
-        options.ListenAnyIP(8080);
-    });
+        // In production (Azure), listen on 0.0.0.0:8080
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.ListenAnyIP(8080);
+        });
+    }
+    else
+    {
+        // In development, use the settings from appsettings.json
+        builder.WebHost.UseKestrel();
+    }
 
     var app = builder.Build();
 
@@ -73,6 +87,7 @@ try
         });
 
         app.UseDeveloperExceptionPage();
+        app.UseHttpsRedirection();
     }
 
     // Custom middlewares
