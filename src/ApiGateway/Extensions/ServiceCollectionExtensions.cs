@@ -54,13 +54,17 @@ public static class ServiceCollectionExtensions
              }
              return ValueTask.CompletedTask;
          });
+     })
+     .ConfigureHttpClient((context, handler) =>
+     {
+         handler.ConnectTimeout = TimeSpan.FromSeconds(30);
      });
 
         // Configure resilience for outgoing proxy calls
         services.AddHttpClient("proxy")
             .AddResilienceHandler("gateway-pipeline", builder =>
             {
-                // 🔁 Retry
+                // 🔁 AddOutputCache
                 builder.AddRetry(new HttpRetryStrategyOptions
                 {
                     MaxRetryAttempts = 3,
@@ -89,11 +93,16 @@ public static class ServiceCollectionExtensions
         // -------------------
         // 1️⃣ CORS
         // -------------------
+
+        var allowedOrigins = configuration
+                            .GetSection("Cors:AllowedOrigins")
+                            .Get<string[]>() ?? Array.Empty<string>();
+
         services.AddCors(options =>
         {
             options.AddPolicy("GatewayCorsPolicy",
                 builder => builder
-                    .WithOrigins("http://localhost:4200", "http://localhost:8080")
+                    .WithOrigins(allowedOrigins)
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials());

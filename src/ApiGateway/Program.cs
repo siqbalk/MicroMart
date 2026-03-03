@@ -14,7 +14,7 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
     .AddEnvironmentVariables();
 
-//builder.AddConfigurationFiles();
+builder.AddConfigurationFiles();
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
