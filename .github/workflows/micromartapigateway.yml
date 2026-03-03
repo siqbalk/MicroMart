@@ -7,12 +7,12 @@ on:
 # REMOVED the permissions block that was causing OIDC issues
 
 env:
-  CONTAINER_APP_CONTAINER_NAME: micromartapigateway
-  CONTAINER_APP_NAME: micromartapigateway
+  CONTAINER_APP_CONTAINER_NAME: micromartapi
+  CONTAINER_APP_NAME: micromartapi
   CONTAINER_APP_RESOURCE_GROUP_NAME: micro-mart
   CONTAINER_REGISTRY_LOGIN_SERVER: micromartrg.azurecr.io
   DOCKER_FILE_PATH: src/ApiGateway/Dockerfile
-  PROJECT_NAME_FOR_DOCKER: micromartapigateway
+  PROJECT_NAME_FOR_DOCKER: micromartapi
 
 jobs:
   build:
