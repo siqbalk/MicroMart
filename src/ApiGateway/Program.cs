@@ -54,19 +54,13 @@ try
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
 
-    if (builder.Environment.IsProduction())
-    {
+    
         // In production (Azure), listen on 0.0.0.0:8080
         builder.WebHost.ConfigureKestrel(options =>
         {
             options.ListenAnyIP(8080);
         });
-    }
-    else
-    {
-        // In development, use the settings from appsettings.json
-        builder.WebHost.UseKestrel();
-    }
+  
 
     var app = builder.Build();
 
