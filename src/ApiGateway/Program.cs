@@ -87,7 +87,7 @@ try
         });
 
         app.UseDeveloperExceptionPage();
-        app.UseHttpsRedirection();
+      //  app.UseHttpsRedirection();
     }
 
     // Custom middlewares
