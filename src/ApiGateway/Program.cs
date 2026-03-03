@@ -102,7 +102,8 @@ try
 
 
     // Health
-    app.MapHealthChecks("/health");
+    app.MapHealthChecks("/health")
+   .AllowAnonymous();
 
     // Controllers
     app.MapControllers();
