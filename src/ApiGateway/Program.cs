@@ -1,8 +1,10 @@
 ﻿// Program.cs - Complete working version
 using AspNetCoreRateLimit;
+using HealthChecks.UI.Client;
 using MicroMart.ApiGateway.ExceptionHandlers;
 using MicroMart.ApiGateway.Extensions;
 using MicroMart.ApiGateway.Middleware;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -102,8 +104,30 @@ try
 
 
     // Health
-    app.MapHealthChecks("/health")
-   .AllowAnonymous();
+    app.MapHealthChecks("/health/live", new HealthCheckOptions
+    {
+        // Only run the "self" check — ignores downstream entirely
+        Predicate = check => check.Name == "self",
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }).AllowAnonymous();
+
+    // 2. READINESS — checks everything including downstream
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        Predicate = _ => true,
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }).AllowAnonymous();
+
+    // 3. Keep simple /health for basic ping
+    app.MapHealthChecks("/health", new HealthCheckOptions
+    {
+        Predicate = check => check.Name == "self",
+        ResponseWriter = (context, report) =>
+        {
+            context.Response.ContentType = "text/plain";
+            return context.Response.WriteAsync("Healthy");
+        }
+    }).AllowAnonymous();
 
     // Controllers
     app.MapControllers();
