@@ -24,9 +24,14 @@
     <Project Path="src/Services/PaymentProcessing/src/WebAPI/MicroMart.PaymentProcessing.csproj" />
   </Folder>
   <Folder Name="/src/Services/ProductCatalog/" />
-  <Folder Name="/src/Services/ProductCatalog/src/" />
-  <Folder Name="/src/Services/ProductCatalog/src/WebAPI/">
+  <Folder Name="/src/Services/ProductCatalog/src/">
+    <Project Path="MicroMart.ProductCatalog.Application/MicroMart.ProductCatalog.Application.csproj" Id="9e3ac0e0-563c-4ca0-8b40-a0c84eb30b7f" />
+    <Project Path="MicroMart.ProductCatalog.Domain/MicroMart.ProductCatalog.Domain.csproj" Id="63a9f358-1925-4708-8593-2f4c5897dbc1" />
+    <Project Path="MicroMart.ProductCatalog.Infrastructure/MicroMart.ProductCatalog.Infrastructure.csproj" Id="fa2e3ac6-aa20-4a37-a710-4b17ae236ff8" />
     <Project Path="src/Services/ProductCatalog/src/WebAPI/MicroMart.ProductCatalog.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/ProductCatalog/tests/">
+    <Project Path="MicroMart.ProductCatalog.Tests/MicroMart.ProductCatalog.Tests.csproj" Id="2ee72fc8-7ff3-4acf-9b9f-ddb5a4176cee" />
   </Folder>
   <Folder Name="/src/Services/ReviewService/" />
   <Folder Name="/src/Services/ReviewService/src/" />

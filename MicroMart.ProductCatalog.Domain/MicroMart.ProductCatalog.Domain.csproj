@@ -1,0 +1,23 @@
+﻿<!-- This file proves Domain has ZERO external dependencies -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>MicroMart.ProductCatalog.Domain</RootNamespace>
+        <AssemblyName>MicroMart.ProductCatalog.Domain</AssemblyName>
+
+        <!-- Treat warnings as errors — keeps domain clean -->
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Nullable>enable</Nullable>
+        <WarningsAsErrors />
+    </PropertyGroup>
+
+    <!-- ✅ NO PackageReference entries here
+       Domain depends on NOTHING outside .NET BCL
+       If you feel like adding a NuGet package here,
+       question whether that code belongs in Application
+       or Infrastructure instead -->
+
+</Project>

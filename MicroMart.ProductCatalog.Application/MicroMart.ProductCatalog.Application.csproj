@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <!-- Domain project reference — Application depends on Domain ONLY -->
+    <ItemGroup>
+        <ProjectReference Include="..\MicroMart.ProductCatalog.Domain\MicroMart.ProductCatalog.Domain.csproj" />
+    </ItemGroup>
+
+    <!-- NuGet packages — orchestration only, no infrastructure -->
+    <ItemGroup>
+        <!-- CQRS dispatcher -->
+        <PackageReference Include="MediatR" Version="12.*" />
+
+        <!-- Validation -->
+        <PackageReference Include="FluentValidation" Version="11.*" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+
+        <!-- Object mapping Domain → DTOs -->
+        <PackageReference Include="Mapster" Version="7.*" />
+        <PackageReference Include="Mapster.DependencyInjection" Version="1.*" />
+
+        <!-- Distributed cache abstraction for CachingBehaviour -->
+        <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.*" />
+
+        <!-- Logging abstraction for behaviours -->
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.*" />
+
+        <!-- MassTransit abstraction for publishing integration events -->
+        <PackageReference Include="MassTransit" Version="8.*" />
+    </ItemGroup>
+
+</Project>

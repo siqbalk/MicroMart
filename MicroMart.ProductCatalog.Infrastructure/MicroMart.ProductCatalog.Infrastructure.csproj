@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Only depends on Application — never on WebApi -->
+        <ProjectReference Include="..\MicroMart.ProductCatalog.Application\MicroMart.ProductCatalog.Application.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- MongoDB -->
+        <PackageReference Include="MongoDB.Driver" Version="3.*" />
+
+        <!-- Redis -->
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.*" />
+        <PackageReference Include="StackExchange.Redis" Version="2.*" />
+
+        <!-- Elasticsearch -->
+        <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.*" />
+
+        <!-- MassTransit + RabbitMQ -->
+        <PackageReference Include="MassTransit" Version="8.*" />
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.*" />
+
+        <!-- Azure Blob for product images -->
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.*" />
+
+        <!-- Serialization -->
+
+        <!-- DI / Options -->
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.*" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.*" />
+    </ItemGroup>
+</Project>
