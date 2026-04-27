@@ -3,11 +3,8 @@ using Mapster;
 using MicroMart.ProductCatalog.Application.Abstractions;
 using MicroMart.ProductCatalog.Application.DTOs;
 using MicroMart.ProductCatalog.Domain.Interfaces;
-using MicroMart.ProductCatalog.Domain.Primitives;
 using MicroMart.ProductCatalog.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using MicroMart.Shared.Core.Results;
 
 namespace MicroMart.ProductCatalog.Application.Products.Commands;
 

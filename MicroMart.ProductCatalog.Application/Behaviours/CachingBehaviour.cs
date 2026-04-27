@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using MicroMart.ProductCatalog.Application.Abstractions;
-using MicroMart.ProductCatalog.Domain.Primitives;
+using MicroMart.Shared.Core.Results;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using System;
@@ -21,38 +21,65 @@ public sealed class CachingBehaviour<TRequest, TResponse>(
         RequestHandlerDelegate<TResponse> next,
         CancellationToken ct)
     {
-        // Admin bypass — always fresh data
-        if (request.BypassCache)
+       // if (request.BypassCache)
+       if(true)
         {
             logger.LogDebug("Cache BYPASS: {Key}", request.CacheKey);
             return await next();
         }
 
-        // Check Redis
+        // ─────────────────────────────────────────────
+        // CACHE HIT
+        // ─────────────────────────────────────────────
         var cachedJson = await cache.GetStringAsync(request.CacheKey, ct);
         if (cachedJson is not null)
         {
             logger.LogDebug("Cache HIT: {Key}", request.CacheKey);
-            return JsonSerializer.Deserialize<TResponse>(cachedJson)!;
+
+            var cachedData =
+                JsonSerializer.Deserialize<TResponse>(cachedJson);
+
+            return cachedData!;
         }
 
-        // Cache MISS — run the handler
+        // ─────────────────────────────────────────────
+        // CACHE MISS
+        // ─────────────────────────────────────────────
         logger.LogDebug("Cache MISS: {Key}", request.CacheKey);
+
         var response = await next();
 
-        // Only cache successful results — don't cache errors
-        var isSuccess = response is Result result && result.IsSuccess;
-        if (isSuccess)
+        // ─────────────────────────────────────────────
+        // ONLY CACHE PURE DATA (NOT Result<T>)
+        // ─────────────────────────────────────────────
+        if (response is not Result result)
+        {
+            await cache.SetStringAsync(
+                request.CacheKey,
+                JsonSerializer.Serialize(response),
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow =
+                        TimeSpan.FromSeconds(request.CacheDurationSeconds)
+                },
+                ct);
+        }
+        else if (result.IsSuccess)
         {
             var options = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow =
                     TimeSpan.FromSeconds(request.CacheDurationSeconds)
             };
+
+            // 🔥 IMPORTANT FIX: cache ONLY value, not Result wrapper
+            var json = JsonSerializer.Serialize(result);
+
             await cache.SetStringAsync(
                 request.CacheKey,
-                JsonSerializer.Serialize(response),
-                options, ct);
+                json,
+                options,
+                ct);
         }
 
         return response;

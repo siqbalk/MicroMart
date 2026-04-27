@@ -1,4 +1,4 @@
-﻿using MicroMart.ProductCatalog.Domain.Primitives;
+﻿using MicroMart.Shared.Core.Results;
 
 namespace MicroMart.ProductCatalog.Domain.ValueObjects;
 

@@ -12,6 +12,10 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/Services/ProductCatalog/src/WebAPI/MicroMart.ProductCatalog.csproj", "src/Services/ProductCatalog/src/WebAPI/"]
+COPY ["MicroMart.ProductCatalog.Application/MicroMart.ProductCatalog.Application.csproj", "MicroMart.ProductCatalog.Application/"]
+COPY ["MicroMart.ProductCatalog.Domain/MicroMart.ProductCatalog.Domain.csproj", "MicroMart.ProductCatalog.Domain/"]
+COPY ["src/Shared/MicroMart.Shared.Core/MicroMart.Shared.Core.csproj", "src/Shared/MicroMart.Shared.Core/"]
+COPY ["MicroMart.ProductCatalog.Infrastructure/MicroMart.ProductCatalog.Infrastructure.csproj", "MicroMart.ProductCatalog.Infrastructure/"]
 RUN dotnet restore "./src/Services/ProductCatalog/src/WebAPI/MicroMart.ProductCatalog.csproj"
 COPY . .
 WORKDIR "/src/src/Services/ProductCatalog/src/WebAPI"

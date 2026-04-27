@@ -2,7 +2,7 @@
 using MicroMart.ProductCatalog.Application.Abstractions;
 using MicroMart.ProductCatalog.Application.DTOs;
 using MicroMart.ProductCatalog.Domain.Interfaces;
-using MicroMart.ProductCatalog.Domain.Primitives;
+using MicroMart.Shared.Core.Results;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,5 +27,25 @@ public sealed class GetAllCategoriesHandler(ICategoryRepository repo)
         var categories = await repo.GetAllAsync(ct);
         return Result.Success(
             categories.Adapt<IReadOnlyList<CategoryResponse>>());
+    }
+}
+
+
+public sealed record GetTopLevelCategoriesQuery()
+    : IQuery<IReadOnlyList<CategoryResponse>>, ICacheableQuery
+{
+    public string CacheKey => "categories:toplevel";
+    public int CacheDurationSeconds { get; } = 600;
+    public bool BypassCache { get; } = false;
+}
+
+public sealed class GetTopLevelCategoriesHandler(ICategoryRepository repo)
+    : IQueryHandler<GetTopLevelCategoriesQuery, IReadOnlyList<CategoryResponse>>
+{
+    public async Task<Result<IReadOnlyList<CategoryResponse>>> Handle(
+        GetTopLevelCategoriesQuery query, CancellationToken ct)
+    {
+        var categories = await repo.GetTopLevelAsync(ct);
+        return Result.Success(categories.Adapt<IReadOnlyList<CategoryResponse>>());
     }
 }

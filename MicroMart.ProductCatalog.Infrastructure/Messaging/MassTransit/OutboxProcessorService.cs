@@ -1,9 +1,8 @@
-﻿
-
-using global::MassTransit;
+﻿using global::MassTransit;
 using global::MicroMart.ProductCatalog.Application.IntegrationEvents;
 using global::MicroMart.ProductCatalog.Infrastructure.Persistence.MongoDB;
 using global::MicroMart.ProductCatalog.Infrastructure.Persistence.MongoDB.Documents;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -15,28 +14,17 @@ namespace MicroMart.ProductCatalog.Infrastructure.Messaging.MassTransit;
 // to RabbitMQ via MassTransit. Runs every 5 seconds.
 // Guarantees at-least-once delivery — consumers must be idempotent.
 public sealed class OutboxProcessorService(
-    MongoDbContext context,
-    IPublishEndpoint bus,
+    IServiceScopeFactory scopeFactory,        // ← inject this, NOT IPublishEndpoint
     ILogger<OutboxProcessorService> logger)
     : BackgroundService
 {
-    private static readonly TimeSpan _interval = TimeSpan.FromSeconds(5);
-    private const int _batchSize = 50;
-    private const int _maxRetries = 5;
-
-    // Well-known integration event types for deserialization
-    private static readonly Dictionary<string, Type> _eventTypes = new()
-    {
-        [nameof(ProductCreatedIntegrationEvent)] = typeof(ProductCreatedIntegrationEvent),
-        [nameof(ProductDeletedIntegrationEvent)] = typeof(ProductDeletedIntegrationEvent),
-        [nameof(ProductPriceChangedIntegrationEvent)] = typeof(ProductPriceChangedIntegrationEvent),
-        [nameof(StockUpdatedIntegrationEvent)] = typeof(StockUpdatedIntegrationEvent),
-    };
+    private const int BatchSize = 50;
+    private const int MaxRetries = 5;
+    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(5);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Outbox processor started — polling every {Interval}s",
-            _interval.TotalSeconds);
+        logger.LogInformation("Outbox processor started.");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -46,94 +34,105 @@ public sealed class OutboxProcessorService(
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                logger.LogError(ex, "Outbox processor encountered an error");
+                logger.LogError(ex, "Outbox processor encountered an error.");
             }
 
-            await Task.Delay(_interval, stoppingToken);
+            await Task.Delay(Interval, stoppingToken);
         }
+
+        logger.LogInformation("Outbox processor stopped.");
     }
 
     private async Task ProcessBatchAsync(CancellationToken ct)
     {
-        // Fetch pending messages (processedAt == null) ordered by creation time
-        var filter = Builders<OutboxMessage>.Filter.And(
-            Builders<OutboxMessage>.Filter.Eq(m => m.ProcessedAt, (DateTime?)null),
-            Builders<OutboxMessage>.Filter.Lt(m => m.RetryCount, _maxRetries));
+        // ── Create a fresh scope for each batch ──────────────────────────
+        // This gives us a properly scoped IPublishEndpoint and MongoDbContext
+        // and ensures they are disposed when the batch completes.
+        await using var scope = scopeFactory.CreateAsyncScope();
 
-        var sort = Builders<OutboxMessage>.Sort.Ascending(m => m.CreatedAt);
+        var context = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
+        var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
-        var messages = await context.OutboxMessages
-            .Find(filter).Sort(sort).Limit(_batchSize).ToListAsync(ct);
+        // Fetch pending messages — not yet processed, under max retries
+        var pending = await context.OutboxMessages
+            .Find(m => m.ProcessedAt == null && m.RetryCount < MaxRetries)
+            .SortBy(m => m.CreatedAt)
+            .Limit(BatchSize)
+            .ToListAsync(ct);
 
-        if (messages.Count == 0) return;
+        if (pending.Count == 0) return;
 
-        logger.LogDebug("Processing {Count} outbox messages", messages.Count);
+        logger.LogDebug("Processing {Count} outbox messages.", pending.Count);
 
-        foreach (var message in messages)
+        foreach (var message in pending)
         {
-            await PublishMessageAsync(message, ct);
+            await ProcessMessageAsync(context, publishEndpoint, message, ct);
         }
     }
 
-    private async Task PublishMessageAsync(OutboxMessage message, CancellationToken ct)
+    private async Task ProcessMessageAsync(
+        MongoDbContext context,
+        IPublishEndpoint publishEndpoint,
+        OutboxMessage message,
+        CancellationToken ct)
     {
         try
         {
-            // Resolve type from simple name (more portable than AssemblyQualifiedName)
-            var typeName = message.Type.Split('.').Last().Split(',').First();
-            if (!_eventTypes.TryGetValue(typeName, out var eventType))
+            // Resolve the CLR type from the stored type name
+            var type = Type.GetType(message.Type);
+            if (type is null)
             {
                 logger.LogWarning(
-                    "Unknown outbox message type '{Type}' — marking as processed to prevent loop",
-                    message.Type);
-                await MarkProcessedAsync(message.Id, ct);
+                    "Cannot resolve type '{Type}' for outbox message {Id}. Skipping.",
+                    message.Type, message.Id);
+
+                await MarkFailedAsync(context, message, ct);
                 return;
             }
 
-            // Deserialize the JSON payload back to the integration event
-            var @event = JsonSerializer.Deserialize(message.Payload, eventType);
-            if (@event == null)
+            // Deserialize the JSON payload back to the original event type
+            var @event = JsonSerializer.Deserialize(message.Payload, type);
+            if (@event is null)
             {
-                logger.LogError(
-                    "Failed to deserialize outbox message {Id} of type '{Type}'",
-                    message.Id, message.Type);
-                await MarkFailedAsync(message.Id, "Deserialization returned null", ct);
+                logger.LogWarning(
+                    "Failed to deserialize outbox message {Id}. Skipping.",
+                    message.Id);
+
+                await MarkFailedAsync(context, message, ct);
                 return;
             }
 
             // Publish to RabbitMQ via MassTransit
-            // MassTransit routes to the correct exchange by message type
-            await bus.Publish(@event, eventType, ct);
-            await MarkProcessedAsync(message.Id, ct);
+            await publishEndpoint.Publish(@event, type, ct);
 
-            logger.LogDebug(
-                "Published outbox message {Id} of type '{Type}'",
-                message.Id, typeName);
+            // Mark as processed
+            await context.OutboxMessages.UpdateOneAsync(
+                m => m.Id == message.Id,
+                Builders<OutboxMessage>.Update
+                    .Set(m => m.ProcessedAt, DateTime.UtcNow),
+                cancellationToken: ct);
+
+            logger.LogDebug("Published outbox message {Id} of type {Type}.", message.Id, message.Type);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex,
-                "Failed to publish outbox message {Id} — incrementing retry count",
-                message.Id);
-            await MarkFailedAsync(message.Id, ex.Message, ct);
+            logger.LogWarning(ex,
+                "Failed to publish outbox message {Id}. RetryCount = {RetryCount}.",
+                message.Id, message.RetryCount + 1);
+
+            await MarkFailedAsync(context, message, ct);
         }
     }
 
-    private async Task MarkProcessedAsync(string id, CancellationToken ct)
+    private static async Task MarkFailedAsync(
+        MongoDbContext context,
+        OutboxMessage message,
+        CancellationToken ct)
     {
-        var filter = Builders<OutboxMessage>.Filter.Eq(m => m.Id, id);
-        var update = Builders<OutboxMessage>.Update
-            .Set(m => m.ProcessedAt, DateTime.UtcNow)
-            .Unset(m => m.Error);
-        await context.OutboxMessages.UpdateOneAsync(filter, update, cancellationToken: ct);
-    }
-
-    private async Task MarkFailedAsync(string id, string error, CancellationToken ct)
-    {
-        var filter = Builders<OutboxMessage>.Filter.Eq(m => m.Id, id);
-        var update = Builders<OutboxMessage>.Update
-            .Set(m => m.Error, error)
-            .Inc(m => m.RetryCount, 1);
-        await context.OutboxMessages.UpdateOneAsync(filter, update, cancellationToken: ct);
+        await context.OutboxMessages.UpdateOneAsync(
+            m => m.Id == message.Id,
+            Builders<OutboxMessage>.Update
+                .Inc(m => m.RetryCount, 1),
+            cancellationToken: ct);
     }
 }

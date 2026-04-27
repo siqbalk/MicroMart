@@ -93,8 +93,8 @@ try
     //app.UseHttpsRedirection();
     app.UseRouting();
     app.UseCors("GatewayCorsPolicy");
-    app.UseAuthentication();
-    app.UseAuthorization();
+  //  app.UseAuthentication();
+   // app.UseAuthorization();
     app.UseOutputCache();
 
 
@@ -133,8 +133,8 @@ try
     app.MapControllers();
 
     // 🔥 Reverse proxy (ONLY ONCE and LAST)
-    app.MapReverseProxy()
-    .RequireAuthorization();
+    app.MapReverseProxy();
+   // .RequireAuthorization();
 
     await app.RunAsync();
 }

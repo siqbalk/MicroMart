@@ -1,4 +1,4 @@
-﻿namespace MicroMart.ProductCatalog.Domain.Primitives;
+﻿namespace MicroMart.Shared.Core.Results;
 
 public sealed record Error(string Code, string Message)
 {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MicroMart.ProductCatalog.Domain.Primitives;
+namespace MicroMart.Shared.Core.Primitives;
 
     public abstract class AggregateRoot<TId> : Entity<TId>
     where TId : notnull

@@ -1,5 +1,6 @@
-﻿using MicroMart.ProductCatalog.Domain.Primitives;
-using MicroMart.ProductCatalog.Domain.ValueObjects;
+﻿using MicroMart.ProductCatalog.Domain.ValueObjects;
+using MicroMart.Shared.Core.Primitives;
+using MicroMart.Shared.Core.Results;
 using System;
 using System.Collections.Generic;
 using System.Text;

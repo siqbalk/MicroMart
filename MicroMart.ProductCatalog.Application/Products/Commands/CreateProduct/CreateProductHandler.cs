@@ -5,8 +5,8 @@ using MicroMart.ProductCatalog.Application.DTOs;
 using MicroMart.ProductCatalog.Application.IntegrationEvents;
 using MicroMart.ProductCatalog.Domain.Entities;
 using MicroMart.ProductCatalog.Domain.Interfaces;
-using MicroMart.ProductCatalog.Domain.Primitives;
 using MicroMart.ProductCatalog.Domain.ValueObjects;
+using MicroMart.Shared.Core.Results;
 using Microsoft.Extensions.Logging;
 
 namespace MicroMart.ProductCatalog.Application.Products.Commands.CreateProduct;
@@ -39,7 +39,7 @@ public sealed class CreateProductHandler(
         if (skuResult.IsFailure)
             return Result.Failure<ProductResponse>(skuResult.Error);
 
-        var priceResult = Money.Create(cmd.Price, cmd.Currency);
+        var priceResult = Money.Create(cmd.PriceAmount, cmd.PriceCurrency);
         if (priceResult.IsFailure)
             return Result.Failure<ProductResponse>(priceResult.Error);
 
@@ -66,15 +66,15 @@ public sealed class CreateProductHandler(
         var product = productResult.Value;
 
         // ── Step 4: Add tags ──────────────────────────────────────────
-        if (cmd.Tags is not null)
-        {
-            foreach (var tag in cmd.Tags)
-            {
-                var tagResult = product.AddTag(tag);
-                if (tagResult.IsFailure)
-                    return Result.Failure<ProductResponse>(tagResult.Error);
-            }
-        }
+        //if (cmd.Tags is not null)
+        //{
+        //    foreach (var tag in cmd.Tags)
+        //    {
+        //        var tagResult = product.AddTag(tag);
+        //        if (tagResult.IsFailure)
+        //            return Result.Failure<ProductResponse>(tagResult.Error);
+        //    }
+        //}
 
         // ── Step 5: Persist to MongoDB ────────────────────────────────
         await repo.AddAsync(product, ct);

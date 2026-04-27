@@ -1,25 +1,120 @@
-version: '3.8'
-
 services:
-
-  apigateway:
-    container_name: apigateway
+  micromart.productcatalog:
+    image: ${DOCKER_REGISTRY-}micromartproductcatalog
     build:
-      context: ./src/ApiGateway
-      dockerfile: Dockerfile
-    ports:
-      - "8801:8080"
+      context: .
+      dockerfile: src/Services/ProductCatalog/src/WebAPI/Dockerfile
     depends_on:
-      - productservice
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - mongodb
+      - rabbitmq
+      - redis
+      - elasticsearch
+      - jaeger
+    networks:
+      - micromart-net
 
-  productservice:
-    container_name: productservice
+  micromart.apigateway:
+    image: ${DOCKER_REGISTRY-}micromartapigateway
     build:
-      context: ./src/Services/ProductCatalog
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/ApiGateway/Dockerfile
+    depends_on:
+      - jaeger
+      - rabbitmq
+    networks:
+      - micromart-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: micromart-rabbitmq
     ports:
-      - "8802:8080"
+      - "5672:5672"
+      - "15672:15672"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - micromart-net
+
+  mongodb:
+    image: mongo:7.0
+    container_name: micromart-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - micromart-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: micromart-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - micromart-net
+
+  elasticsearch:
+    image: elasticsearch:8.12.0
+    container_name: micromart-elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+    networks:
+      - micromart-net
+
+  # =========================
+  # OBSERVABILITY STACK
+  # =========================
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: micromart-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - micromart-net
+
+  prometheus:
+    image: prom/prometheus
+    container_name: micromart-prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - micromart-net
+
+  grafana:
+    image: grafana/grafana
+    container_name: micromart-grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - micromart-net
+
+# =========================
+# NETWORKS
+# =========================
+networks:
+  micromart-net:
+    driver: bridge
+
+# =========================
+# VOLUMES
+# =========================
+volumes:
+  mongo-data:
+  elastic-data:

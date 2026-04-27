@@ -111,63 +111,63 @@ public static class ServiceCollectionExtensions
         // -------------------
         // 2️⃣ JWT Authentication (Entra ID / Azure AD)
         // -------------------
-        var azureAdConfig = configuration.GetSection("Security:AzureAd");
-        if (azureAdConfig.Exists())
-        {
-            var tenantId = azureAdConfig["TenantId"];
-            var clientId = azureAdConfig["ClientId"]; // This should be the API Client ID (a2bca0f8...)
-            var instance = azureAdConfig["Instance"] ?? "https://login.microsoftonline.com";
-            var authority = $"{instance}/{tenantId}";
+        //var azureAdConfig = configuration.GetSection("Security:AzureAd");
+        //if (azureAdConfig.Exists())
+        //{
+        //    var tenantId = azureAdConfig["TenantId"];
+        //    var clientId = azureAdConfig["ClientId"]; // This should be the API Client ID (a2bca0f8...)
+        //    var instance = azureAdConfig["Instance"] ?? "https://login.microsoftonline.com";
+        //    var authority = $"{instance}/{tenantId}";
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.Authority = authority;
-                    options.Audience = clientId; // This must match the API's Application ID URI
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidAudience = clientId, // Explicitly set
-                        ValidAudiences = new[] { clientId, $"api://{clientId}" } // Accept both formats
-                    };
+        //    services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        //        .AddJwtBearer(options =>
+        //        {
+        //            options.Authority = authority;
+        //            options.Audience = clientId; // This must match the API's Application ID URI
+        //            options.TokenValidationParameters = new TokenValidationParameters
+        //            {
+        //                ValidateIssuer = true,
+        //                ValidateAudience = true,
+        //                ValidateLifetime = true,
+        //                ValidateIssuerSigningKey = true,
+        //                ValidAudience = clientId, // Explicitly set
+        //                ValidAudiences = new[] { clientId, $"api://{clientId}" } // Accept both formats
+        //            };
 
-                    // Add event for debugging
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnAuthenticationFailed = context =>
-                        {
-                            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-                            return Task.CompletedTask;
-                        },
-                        OnTokenValidated = context =>
-                        {
-                            Console.WriteLine("Token successfully validated");
-                            return Task.CompletedTask;
-                        },
-                        OnChallenge = context =>
-                        {
-                            Console.WriteLine($"Challenge: {context.Error}, {context.ErrorDescription}");
-                            return Task.CompletedTask;
-                        }
-                    };
-                });
+        //            // Add event for debugging
+        //            options.Events = new JwtBearerEvents
+        //            {
+        //                OnAuthenticationFailed = context =>
+        //                {
+        //                    Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+        //                    return Task.CompletedTask;
+        //                },
+        //                OnTokenValidated = context =>
+        //                {
+        //                    Console.WriteLine("Token successfully validated");
+        //                    return Task.CompletedTask;
+        //                },
+        //                OnChallenge = context =>
+        //                {
+        //                    Console.WriteLine($"Challenge: {context.Error}, {context.ErrorDescription}");
+        //                    return Task.CompletedTask;
+        //                }
+        //            };
+        //        });
 
-            services.AddAuthorization(options =>
-            {
-                // Default policy requires authentication
-                options.FallbackPolicy = options.DefaultPolicy;
+        //    services.AddAuthorization(options =>
+        //    {
+        //        // Default policy requires authentication
+        //        options.FallbackPolicy = options.DefaultPolicy;
 
-                // Example policies
-                options.AddPolicy("AdminOnly", policy =>
-                    policy.RequireClaim("roles", "Admin"));
+        //        // Example policies
+        //        options.AddPolicy("AdminOnly", policy =>
+        //            policy.RequireClaim("roles", "Admin"));
 
-                options.AddPolicy("UserOrAdmin", policy =>
-                    policy.RequireClaim("roles", new[] { "User", "Admin" }));
-            });
-        }
+        //        options.AddPolicy("UserOrAdmin", policy =>
+        //            policy.RequireClaim("roles", new[] { "User", "Admin" }));
+        //    });
+        //}
 
         // -------------------
         // 3️⃣ API Key Authentication Service
@@ -190,23 +190,32 @@ public static class ServiceCollectionExtensions
     {
         // Add OpenTelemetry
         services.AddOpenTelemetry()
-            .ConfigureResource(resource => resource
-                .AddService("micro-mart-api-gateway")
-                .AddAttributes(new Dictionary<string, object>
-                {
-                    ["environment"] = configuration["ASPNETCORE_ENVIRONMENT"] ?? "development"
-                }))
-            .WithTracing(tracing =>
-            {
-                tracing.AddAspNetCoreInstrumentation();
-                tracing.AddHttpClientInstrumentation();
-                tracing.AddConsoleExporter();
-            })
-            .WithMetrics(metrics =>
-            {
-                metrics.AddAspNetCoreInstrumentation();
-                metrics.AddHttpClientInstrumentation();
-            });
+      .ConfigureResource(resource => resource
+          .AddService("micro-mart-api-gateway")
+          .AddAttributes(new Dictionary<string, object>
+          {
+              ["environment"] = configuration["ASPNETCORE_ENVIRONMENT"] ?? "development"
+          }))
+      .WithTracing(tracing =>
+      {
+          tracing.AddAspNetCoreInstrumentation();
+          tracing.AddHttpClientInstrumentation();
+
+          tracing.AddOtlpExporter(opt =>
+          {
+              opt.Endpoint = new Uri("http://jaeger:4317");
+          });
+      })
+      .WithMetrics(metrics =>
+      {
+          metrics.AddAspNetCoreInstrumentation();
+          metrics.AddHttpClientInstrumentation();
+
+          metrics.AddOtlpExporter(opt =>
+          {
+              opt.Endpoint = new Uri("http://jaeger:4317");
+          });
+      });
 
         return services;
     }

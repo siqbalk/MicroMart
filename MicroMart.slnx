@@ -1,8 +1,4 @@
 <Solution>
-  <Folder Name="/Solution Items/">
-    <File Path=".gitignore" />
-    <File Path="docker-compose.yml" />
-  </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/ApiGateway/">
     <Project Path="src/ApiGateway/MicroMart.ApiGateway.csproj" />
@@ -50,4 +46,7 @@
     <Project Path="src/Shared/MicroMart.Shared.Logging/MicroMart.Shared.Logging.csproj" />
     <Project Path="src/Shared/MicroMart.Shared.MessageBus/MicroMart.Shared.MessageBus.csproj" />
   </Folder>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
 </Solution>

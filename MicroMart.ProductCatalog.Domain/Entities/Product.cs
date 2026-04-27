@@ -1,8 +1,9 @@
 ﻿
 
 using MicroMart.ProductCatalog.Domain.Events;
-using MicroMart.ProductCatalog.Domain.Primitives;
 using MicroMart.ProductCatalog.Domain.ValueObjects;
+using MicroMart.Shared.Core.Primitives;
+using MicroMart.Shared.Core.Results;
 
 namespace MicroMart.ProductCatalog.Domain.Entities;
 

@@ -1,9 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
-using MicroMart.ProductCatalog.Domain.Primitives;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using MicroMart.Shared.Core.Results;
+
 
 namespace MicroMart.ProductCatalog.Application.Behaviours;
 

@@ -66,10 +66,11 @@ public static class InfrastructureServiceExtensions
         services.AddSingleton<IConnectionMultiplexer>(_ =>
         {
             var configOptions = ConfigurationOptions.Parse(redisSettings.ConnectionString);
-            configOptions.ConnectRetry = redisSettings.ConnectRetry;
-            configOptions.ConnectTimeout = redisSettings.ConnectTimeoutMs;
-            configOptions.SyncTimeout = redisSettings.SyncTimeoutMs;
+            configOptions.ConnectRetry = redisSettings.ConnectRetry;       // e.g. 5
+            configOptions.ConnectTimeout = 10000;                          // 10s
+            configOptions.SyncTimeout = 10000;                             // 10s
             configOptions.AbortOnConnectFail = redisSettings.AbortOnConnectFail;
+            configOptions.KeepAlive = 180;                                 // optional
             return ConnectionMultiplexer.Connect(configOptions);
         });
 

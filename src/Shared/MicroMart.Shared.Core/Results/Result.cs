@@ -1,4 +1,4 @@
-﻿namespace MicroMart.ProductCatalog.Domain.Primitives;
+﻿namespace MicroMart.Shared.Core.Results;
 
 public class Result
 {

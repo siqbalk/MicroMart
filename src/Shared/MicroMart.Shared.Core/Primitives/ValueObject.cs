@@ -1,4 +1,4 @@
-﻿namespace MicroMart.ProductCatalog.Domain.Primitives;
+﻿namespace MicroMart.Shared.Core.Primitives;
 
 public abstract class ValueObject
 {

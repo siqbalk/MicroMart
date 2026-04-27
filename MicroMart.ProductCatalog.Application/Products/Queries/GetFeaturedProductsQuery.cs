@@ -2,7 +2,7 @@
 using MicroMart.ProductCatalog.Application.Abstractions;
 using MicroMart.ProductCatalog.Application.DTOs;
 using MicroMart.ProductCatalog.Domain.Interfaces;
-using MicroMart.ProductCatalog.Domain.Primitives;
+using MicroMart.Shared.Core.Results;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,8 +18,7 @@ public sealed record GetFeaturedProductsQuery(int Count = 10)
 }
 
 public sealed class GetFeaturedProductsHandler(IProductRepository repo)
-    : IQueryHandler<GetFeaturedProductsQuery,
-        IReadOnlyList<ProductSummaryResponse>>
+    : IQueryHandler<GetFeaturedProductsQuery, IReadOnlyList<ProductSummaryResponse>>
 {
     public async Task<Result<IReadOnlyList<ProductSummaryResponse>>> Handle(
         GetFeaturedProductsQuery query, CancellationToken ct)

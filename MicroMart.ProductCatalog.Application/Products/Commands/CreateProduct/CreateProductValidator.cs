@@ -6,44 +6,39 @@ using System.Text;
 
 namespace MicroMart.ProductCatalog.Application.Products.Commands.CreateProduct;
 
-public sealed class CreateProductValidator
-    : AbstractValidator<CreateProductCommand>
+public sealed class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
-    public CreateProductValidator(IProductRepository repo)
+    public CreateProductCommandValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Product name is required")
-            .MaximumLength(200).WithMessage("Name cannot exceed 200 characters");
+            .NotEmpty().WithMessage("Product name is required.")
+            .MaximumLength(200).WithMessage("Product name cannot exceed 200 characters.");
 
         RuleFor(x => x.Description)
-            .MaximumLength(5000).WithMessage("Description cannot exceed 5000 characters");
+            .NotEmpty().WithMessage("Description is required.")
+            .MaximumLength(5000);
 
         RuleFor(x => x.Sku)
-            .NotEmpty().WithMessage("SKU is required")
-            .Matches(@"^[A-Z0-9\-]{2,50}$")
-            .WithMessage("SKU must be uppercase alphanumeric (2-50 chars)")
-            .MustAsync(async (sku, ct) => !await repo.ExistsBySkuAsync(sku, ct))
-            .WithMessage(x => $"SKU '{x.Sku}' already exists");
+            .NotEmpty().WithMessage("SKU is required.")
+            .MaximumLength(100)
+            .Matches(@"^[A-Z0-9\-_]+").WithMessage("SKU must contain only uppercase letters, digits, hyphens, or underscores.");
 
-        RuleFor(x => x.Price)
-            .GreaterThan(0).WithMessage("Price must be greater than zero");
+        RuleFor(x => x.PriceAmount)
+            .GreaterThan(0).WithMessage("Price must be greater than zero.");
 
-        RuleFor(x => x.Currency)
+        RuleFor(x => x.PriceCurrency)
             .NotEmpty()
-            .Length(3).WithMessage("Currency must be a 3-letter ISO code (e.g. USD)")
-            .Matches(@"^[A-Z]{3}$").WithMessage("Currency must be uppercase letters");
+            .Length(3).WithMessage("Currency must be a 3-letter ISO 4217 code.");
 
         RuleFor(x => x.InitialStock)
-            .GreaterThanOrEqualTo(0).WithMessage("Stock cannot be negative");
+            .GreaterThanOrEqualTo(0).WithMessage("Initial stock cannot be negative.");
 
         RuleFor(x => x.CategoryId)
-            .NotEmpty().WithMessage("Category is required");
+            .NotEmpty().WithMessage("Category is required.");
 
-        RuleFor(x => x.WeightKg)
-            .GreaterThanOrEqualTo(0).WithMessage("Weight cannot be negative");
-
-        RuleForEach(x => x.Tags)
-            .MaximumLength(50).WithMessage("Each tag cannot exceed 50 characters")
-            .When(x => x.Tags != null);
+        RuleFor(x => x.WeightKg).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.LengthCm).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.WidthCm).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.HeightCm).GreaterThanOrEqualTo(0);
     }
 }

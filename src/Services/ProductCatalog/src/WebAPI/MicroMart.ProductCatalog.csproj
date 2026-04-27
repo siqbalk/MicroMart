@@ -1,27 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MicroMart.ProductCatalog.Api</RootNamespace>
+    <!-- Generate XML docs for Swagger -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..\..\..</DockerfileContext>
+    <DockerComposeProjectPath>..\..\..\..\..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
-  </ItemGroup>
+    <!-- GraphQL — Hot Chocolate -->
+    <PackageReference Include="HotChocolate.AspNetCore" Version="14.*" />
+    <PackageReference Include="HotChocolate.Data" Version="14.*" />
 
-  <ItemGroup>
-    <Folder Include="Middleware\" />
-    <Folder Include="Endpoints\" />
-    <Folder Include="GraphQL\" />
+    <!-- OpenAPI / Swagger for Minimal APIs -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.*" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <PackageReference Include="Redoc.AspNetCore" Version="1.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.*" />
+
+    <!-- API Versioning -->
+    <PackageReference Include="Asp.Versioning.Http" Version="8.*" />
+
+    <!-- Health Checks -->
+    <PackageReference Include="AspNetCore.HealthChecks.MongoDb" Version="8.*" />
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="8.*" />
+    <PackageReference Include="AspNetCore.HealthChecks.Elasticsearch" Version="8.*" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\MicroMart.ProductCatalog.Application\MicroMart.ProductCatalog.Application.csproj" />
+    <ProjectReference Include="..\..\..\..\..\MicroMart.ProductCatalog.Infrastructure\MicroMart.ProductCatalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\Shared\MicroMart.Shared.Core\MicroMart.Shared.Core.csproj" />
   </ItemGroup>
-
 </Project>

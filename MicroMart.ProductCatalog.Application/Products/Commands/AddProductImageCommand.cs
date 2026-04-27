@@ -2,8 +2,8 @@
 using MicroMart.ProductCatalog.Application.Abstractions;
 using MicroMart.ProductCatalog.Application.DTOs;
 using MicroMart.ProductCatalog.Domain.Interfaces;
-using MicroMart.ProductCatalog.Domain.Primitives;
 using MicroMart.ProductCatalog.Domain.ValueObjects;
+using MicroMart.Shared.Core.Results;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,33 +11,35 @@ using System.Text;
 namespace MicroMart.ProductCatalog.Application.Products.Commands;
 
 public sealed record AddProductImageCommand(
-    string ProductId, string ImageUrl,
-    string AltText, bool IsPrimary = false
-) : ICommand<ProductResponse>;
+    string Id, Stream FileStream, string FileName,
+    string ContentType, string AltText, bool IsPrimary)
+    : ICommand;
 
-public sealed class AddProductImageHandler(
-    IProductRepository repo, IUnitOfWork uow)
-    : ICommandHandler<AddProductImageCommand, ProductResponse>
+public sealed class AddProductImageCommandHandler(
+    IProductRepository repo,
+    IUnitOfWork uow,
+    IImageStorageService storage)
+    : ICommandHandler<AddProductImageCommand>
 {
-    public async Task<Result<ProductResponse>> Handle(
-        AddProductImageCommand cmd, CancellationToken ct)
+    public async Task<Result> Handle(AddProductImageCommand cmd, CancellationToken ct)
     {
-        var idResult = ProductId.Create(cmd.ProductId);
-        if (idResult.IsFailure)
-            return Result.Failure<ProductResponse>(idResult.Error);
+        var idResult = ProductId.Create(cmd.Id);
+        if (idResult.IsFailure) return Result.Failure(idResult.Error);
 
         var product = await repo.FindByIdAsync(idResult.Value, ct);
         if (product is null)
-            return Result.Failure<ProductResponse>(
-                Error.NotFound("Product", cmd.ProductId));
+            return Result.Failure(Error.NotFound("Product", cmd.Id));
 
-        var result = product.AddImage(cmd.ImageUrl, cmd.AltText, cmd.IsPrimary);
-        if (result.IsFailure)
-            return Result.Failure<ProductResponse>(result.Error);
+        // Upload to Azure Blob — returns CDN URL
+        var url = await storage.UploadAsync(cmd.FileStream, cmd.FileName, cmd.ContentType, ct);
+
+        var addResult = product.AddImage(url, cmd.AltText, cmd.IsPrimary);
+        if (addResult.IsFailure) return addResult;
 
         await repo.UpdateAsync(product, ct);
         await uow.SaveChangesAsync(ct);
+       // await cache.InvalidateProductAsync(cmd.Id, product.Slug.Value, product.CategoryId.Value.ToString());
 
-        return Result.Success(product.Adapt<ProductResponse>());
+        return Result.Success();
     }
 }

@@ -14,6 +14,10 @@
         <WarningsAsErrors />
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\src\Shared\MicroMart.Shared.Core\MicroMart.Shared.Core.csproj" />
+    </ItemGroup>
+
     <!-- ✅ NO PackageReference entries here
        Domain depends on NOTHING outside .NET BCL
        If you feel like adding a NuGet package here,

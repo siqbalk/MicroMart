@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MicroMart.ProductCatalog.Domain.Primitives;
+namespace MicroMart.Shared.Core.Primitives;
 
 public abstract class Entity<TId> : IEquatable<Entity<TId>>
   where TId : notnull
